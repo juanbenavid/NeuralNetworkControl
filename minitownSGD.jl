@@ -53,15 +53,17 @@ loss(a,b,c,d,e,p1,p2,tH,dem,target) = (target - fhat(a,b,c,d,e,p1,p2,tH,dem))^2;
 # we'll run 30k epochs and see what happens
 
 learning_rate = 0.00001
+plot(range(0,170,step=1),Y_train)
 
 for epoch = 1:30000
     _loss = 0
     for (X,Y) = zip(X_Train,Y_train)
-        ∇_A = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[1]
-        ∇_B = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[2]
-        ∇_C = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[3]
-        ∇_D = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[4]
-        ∇_E = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[5]
+        
+        local ∇_A = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[1]
+        local ∇_B = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[2]
+        local ∇_C = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[3]
+        local ∇_D = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[4]
+        local ∇_E = gradient(loss,A,B,C,D,E,X[1],X[2],X[3],X[4],Y)[5]
 
         global A -= learning_rate * ∇_A
         global B -= learning_rate * ∇_B
@@ -74,6 +76,8 @@ for epoch = 1:30000
     end
     if epoch %1000 == 0
         println(_loss)
+        preds = [fhat(A,B,C,D,E,X[1],X[2],X[3],X[4]) for X=X_Train]
+        plot!(range(0,170,step=1),preds)
     end
     
 end
