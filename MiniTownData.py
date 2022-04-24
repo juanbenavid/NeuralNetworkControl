@@ -882,9 +882,12 @@ from minitown epanet simulation over 170 hour period. tuple of vectors
 def minitownData():
     return (tankFlow,tankHead,pump1,pump2,pumpsFlow,demandFlow,demandFrac)
 
+"""
+returns (X_train,Y_train)
+where X_train is a numpy array [[p1,p2,tH,dem],...[p1,p2,tH,dem]]
+Y_train is a numpy array [tF,tF,tF......tF]
+"""
 def minitownTrain():
     X_train = np.array([ np.array([p1,p2,tH,dem]) for p1,p2,tH,dem in zip(pump1,pump2,tankHead,demandFlow) ])
     Y_train = tankFlow
     return X_train,Y_train
-
-

@@ -37,22 +37,21 @@ Y_VAL =y_shuffled[split:]
 
 
 # define model arch
+# smallest possible model this time
 model = torch.nn.Sequential(
-    torch.nn.Linear(4, 4),   # Wx + b
-    torch.nn.ReLU(),         # max(0,x)
-    torch.nn.Linear(4,1),    # Wx + b
+    torch.nn.Linear(4, 1)   # Wx + b
 )
 
 # define hyper-params
 loss_fn = torch.nn.MSELoss(reduction='sum')
-learning_rate = 1e-4
+learning_rate = 5e-3
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # set model to training mode
 model.train()
 
 # iterate through epochs 
-for epoch in range(400):
+for epoch in range(100):
     ValAcc = 0
     model.train()
     for i in range(len(X_TRAIN)):
@@ -68,7 +67,7 @@ for epoch in range(400):
 
     model.eval()
     for i in range(len(X_VAL)):
-        if abs(model(X_VAL[i].float()).detach().numpy()[0] - Y_VAL[i]) <= 4:
+        if abs(model(X_VAL[i].float()).detach().numpy()[0] - Y_VAL[i]) <= 2:
             ValAcc += 1
 
     if epoch % 20 == 0:
@@ -87,4 +86,8 @@ plt.plot(np.arange(len(preds)),preds,label = 'preds')
 plt.plot(np.arange(len(y_test)),y_test,label = 'ground truth')
 plt.legend()
 plt.show()
+
+for name, param in model.named_parameters():
+    if param.requires_grad:
+        print(name, param.data)
 
