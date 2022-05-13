@@ -1,0 +1,133 @@
+-- Projectile Motion
+-- Juan Benavides 1/2022
+
+-- run with:
+-- read_model -i ProjectileMotion.smv ; go_msat ; msat_check_ltlspec_bmc -k n
+-- where n is number of max bounds you wish to check for
+-- can also just do plain simulation:
+-- read_model -i ProjectileMotion.smv ; go_msat ; msat_pick_state ; msat_simulate -v -k n
+
+-- Syntax notes:
+-- := is assignment
+-- = is equality
+-- case blocks are equivalent to if/else statements
+-- : defines a relation ( belonging to a type/set)
+-- -> is implication
+
+-- Define block has static constants or relations that depend on model variables
+-- VAR block defines the model variables
+
+-- ASSIGN block defines init and next states for each variable
+-- if an init state is not chosen before ltl checking, nuXmv will pick a random value
+-- next() statements can be simple assignments like next(time) := time + 1
+-- or next() statements can be case statements that depend on other variables
+
+-- INVAR statements can be applied to any variable to constrain their behavior
+
+-- TRANS statements are used to describe the transition from state to state
+-- They work in conjuction with the next() statements we assigned above
+
+-- Can check assertions with LTLSPEC or INVARSPEC
+-- G prefix signifies we want to verifiy the property globally for all states
+-- NuXmv will check all of these when we run the msat_check_ltlspec_bmc command
+
+
+
+
+-- Projectile motion of an object of mass m
+-- launched at angle theta
+-- wind resistance factor is variable
+-- "boost" rule aims to keep object from hitting ground
+
+MODULE main 
+
+DEFINE
+----------------------------
+
+deltaHoriz := velHoriz + 0.5*accHoriz;
+deltaVert := velVert + 0.5*accVert;
+
+accVert := -9.8 + boost;
+accHoriz := -1*windR * velHoriz / mass ;
+
+VAR
+-------------------------------
+
+  theta : {15,30,45,60};
+  sinTheta : {26,50,71,87}; -- have to be ints when defining sets
+  cosTheta : {97,87,71,50};
+
+  vel  : real; -- initial launch velocity
+  velHoriz :real ;
+  velVert : real ;
+  x : real;
+  y : real;
+  mass: real;
+
+  windR: real;
+  boost: {0,18}; -- 2gs boost 
+
+  time   : integer;
+
+ASSIGN
+----------------------------
+
+init(theta) := 30; -- degrees
+init(sinTheta) := 50; 
+init(cosTheta) := 87; 
+init(boost) := 0;
+
+init(vel) := 40 ; -- m/s
+init(mass) := 50; --kg
+
+init(time) := 0; -- s
+init(x) := 0; -- m
+init(y) := 0; -- m
+
+init(velHoriz) := vel *  cosTheta/100; 
+init(velVert) := vel * sinTheta/100;
+
+init(windR) := 0 ;
+
+-------------------------------------
+next(theta) := theta;
+next(sinTheta) := sinTheta;
+next(cosTheta) := cosTheta;
+next(vel) := vel;
+next(mass) := mass;
+next(time) := time + 1;
+
+
+next(x) := case 
+	y <= 0 & time > 1: x;
+	TRUE: x + deltaHoriz;
+esac;
+
+next(y) := y + deltaVert;
+
+next(velHoriz) := velHoriz + accHoriz;
+next(velVert) := velVert + accVert;
+
+next(windR) := windR;
+
+------------------------------------------------
+INVAR y >= -60;
+INVAR windR >= 0 & windR <= 1;
+
+------------------------------------------------
+TRANS time>1 & y < 20  -> next(boost) = 18;
+TRANS y>20 -> next(boost) = 0;
+
+-------------------------------------------------
+LTLSPEC G (time <= 10 -> x <= 100);
+LTLSPEC G (y >= 0);
+LTLSPEC G (time > 5 -> y < 0);
+
+
+
+
+
+
+
+
+
